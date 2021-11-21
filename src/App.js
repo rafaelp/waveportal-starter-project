@@ -16,7 +16,7 @@ export default function App() {
   const [totalWavesMessage, setTotalWavesMessage] = useState("Checking waves...");
   const [buttonText, setButtonText] = useState("Wave at Me")
 
-  const contractAddress = "0x098f15DD238f048854Ac3817b5146e3AfA7f7d8f";
+  const contractAddress = "0x7013C464B20Ac234861a9Ed02A70fC87840C0048";
   const contractABI = WavePortal.abi
 
   const checkIfWalletIsConnected = async () => {
@@ -129,6 +129,40 @@ export default function App() {
     }
   }
 
+  /**
+   * Listen in for emitter events!
+   */
+  useEffect(() => {
+    let wavePortalContract;
+
+    const onNewWave = (from, timestamp, message) => {
+      console.log('NewWave', from, timestamp, message);
+      setAllWaves(prevState => [
+        ...prevState,
+        {
+          address: from,
+          timestamp: new Date(timestamp * 1000),
+          message: message,
+        },
+      ]);
+    };
+
+    if (window.ethereum) {
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = provider.getSigner();
+
+      wavePortalContract = new ethers.Contract(contractAddress, contractABI, signer);
+      wavePortalContract.on('NewWave', onNewWave);
+    }
+
+    return () => {
+      if (wavePortalContract) {
+        wavePortalContract.off('NewWave', onNewWave);
+      }
+    };
+  }, []);
+
+
   const wave = async () => {
     try {
       const { ethereum } = window;
@@ -143,11 +177,9 @@ export default function App() {
         /*
         * Execute the actual wave from your smart contract
         */
-        const waveTxn = await wavePortalContract.wave(message);
+        const waveTxn = await wavePortalContract.wave(message, { gasLimit: 300000 });
         console.log("Mining...", waveTxn.hash);
         setButtonText('Waiting the transaction to be confirmed...');
-
-        await getAllWaves();
 
         await waveTxn.wait();
         console.log("Mined -- ", waveTxn.hash);
