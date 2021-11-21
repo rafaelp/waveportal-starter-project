@@ -13,7 +13,7 @@ export default function App() {
    */
   const [allWaves, setAllWaves] = useState([]);
   const [message, setMessage] = useState('');
-  const [totalWavesMessage, setTotalWavesMessage] = useState("Checking waves...");
+  const [totalWavesMessage, setTotalWavesMessage] = useState("");
   const [buttonText, setButtonText] = useState("Wave at Me")
 
   const contractAddress = "0x7013C464B20Ac234861a9Ed02A70fC87840C0048";
@@ -201,7 +201,7 @@ export default function App() {
     }
 
     checkIfWalletIsConnected();
-  }, [contractABI])
+  }, [contractABI, currentAccount])
 
 
   return (
@@ -216,12 +216,16 @@ export default function App() {
         I am rafaelp a brazilian <span role="img" aria-label="Brazil">🇧🇷</span> entrepreneur and developer. Connect your Ethereum wallet to wave at me! <span role="img" aria-label="Playboy">😎</span>
         </div>
 
-        <label htmlFor="message">Leave your message forever:</label>
-        <input type="text" name="message" autoFocus onChange={(event) => { setMessage(event.target.value)} } />
+        {currentAccount && (
+          <div>
+            <label htmlFor="message">Leave your message forever:</label>
+            <input type="text" name="message" autoFocus onChange={(event) => { setMessage(event.target.value)} } />
 
-        <button className="waveButton" onClick={wave}>
-          {buttonText}
-        </button>
+            <button className="waveButton" onClick={wave}>
+              {buttonText}
+            </button>
+          </div>
+        )}
 
         {/*
         * If there is no currentAccount render this button
